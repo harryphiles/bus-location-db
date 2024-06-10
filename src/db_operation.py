@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Iterable
 from db_controller import DatabaseHandler
 
@@ -14,7 +14,7 @@ def convert_api_raw(bus_data: dict[str, Any], query_time: str) -> dict[str, Any]
     """
     dt_astimezone = lambda dt: datetime.strptime(
         dt, "%Y-%m-%d %H:%M:%S.%f"
-    ).astimezone()
+    ).astimezone(tz=timezone.utc)
     query_time_astimezone = dt_astimezone(query_time)
     return {
         "plate_number": bus_data.get("plateNo"),

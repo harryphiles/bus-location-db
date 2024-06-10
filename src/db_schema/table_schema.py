@@ -13,5 +13,5 @@ bus_child = """
     station_id VARCHAR(100),
     initiation_time TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (initiation_time, plate_number, station_sequence),
-    FOREIGN KEY (initiation_time, plate_number) REFERENCES test_1_bus_initial_entry(initiation_time, plate_number)
+    FOREIGN KEY (initiation_time, plate_number) REFERENCES test_2_bus_initial_entry(initiation_time, plate_number)
 """
