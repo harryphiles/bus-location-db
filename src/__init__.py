@@ -1,3 +1,3 @@
 """Bus Locations Database Worker"""
 
-__version__ = ""
+__version__ = "1.0.5"
