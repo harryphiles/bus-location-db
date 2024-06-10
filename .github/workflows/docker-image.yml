@@ -32,4 +32,6 @@ jobs:
     - name: Log in to Docker Hub
       run: echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
     - name: Push to Docker Hub
-      run: docker push "${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.version }}"
+      run: |
+        docker push "${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.version }}"
+        docker push "${{ env.IMAGE_NAME }}:latest"
