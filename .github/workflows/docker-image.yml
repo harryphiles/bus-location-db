@@ -19,7 +19,7 @@ jobs:
     - name: Extract version from __init__.py
       id: extract_version
       run: |
-        version=$(grep -oP "__version__ = '\K[^']+" src/__init__.py)
+        version=$(version=$(grep '__version__ =' src/__init__.py | cut -d '"' -f 2)
         if [ -z "$version" ]; then
           echo "Error: Version not found in __init__.py. Aborting workflow."
           exit 1
