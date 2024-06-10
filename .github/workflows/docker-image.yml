@@ -28,7 +28,7 @@ jobs:
         echo "Extracted version: $version"
         echo "VERSION=$version" >> $GITHUB_OUTPUT
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag "${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.VERSION }}" --tag "${{ env.IMAGE_NAME }}:latest"
+      run: docker build . --file Dockerfile --platform linux/arm64 --tag "${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.VERSION }}" --tag "${{ env.IMAGE_NAME }}:latest"
     - name: Log in to Docker Hub
       run: echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
     - name: Push to Docker Hub
