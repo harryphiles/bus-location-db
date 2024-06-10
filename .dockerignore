@@ -2,3 +2,4 @@
 .env
 /logs
 /db_schema
+__pycache__
