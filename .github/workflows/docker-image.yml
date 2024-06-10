@@ -1,13 +1,13 @@
 name: Docker Image CI
 
+
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    paths:
+      - 'src/__init__.py'  # Trigger only on changes to src/__init__.py
 
 env:
-  IMAGE_NAME: "bus-loc-db-worker"
+  IMAGE_NAME: "harrysgb/bus-loc-db-worker"
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -16,15 +16,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Get latest Docker image tag
-      id: get_tag
-      run: echo ::set-output name=TAG::$(curl -s "https://registry.hub.docker.com/v1/repositories/${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}/tags" | jq -r 'map(.name) | sort | last')
-    - name: Increment tag version
-      id: increment_tag
-      run: echo ::set-output name=TAG::$(($(echo "${{ steps.get_tag.outputs.TAG }}" | sed 's/.*-//')+1))
+    - name: Extract version from __init__.py
+      id: extract_version
+      # run: |
+      #   version=$(grep -oP "__version__ = '\K[^']+" src/__init__.py)
+      #   echo "Extracted version: $version"
+      #   echo "::set-output name=version::$version"
+      run: |
+        version=$(grep -oP "__version__ = '\K[^']+" src/__init__.py)
+        if [ -z "$version" ]; then
+          echo "Error: Version not found in __init__.py. Aborting workflow."
+          exit 1
+        fi
+        echo "Extracted version: $version"
+        echo "::set-output name=version::$version"
+    # - name: Get latest Docker image tag
+    #   id: get_tag
+    #   run: echo ::set-output name=TAG::$(curl -s "https://registry.hub.docker.com/v1/repositories/${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}/tags" | jq -r 'map(.name) | sort | last')
+    # - name: Increment tag version
+    #   id: increment_tag
+    #   run: echo ::set-output name=TAG::$(($(echo "${{ steps.get_tag.outputs.TAG }}" | sed 's/.*-//')+1))
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag "${{ env.IMAGE_NAME }}:${{ steps.increment_tag.outputs.TAG }}"
+      run: docker build . --file Dockerfile --tag "${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.version }}"
     - name: Log in to Docker Hub
       run: echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
     - name: Push to Docker Hub
-      run: docker push "${{ env.IMAGE_NAME }}:${{ steps.increment_tag.outputs.TAG }}"
+      run: docker push "${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.version }}"
