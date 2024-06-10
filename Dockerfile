@@ -10,7 +10,7 @@ WORKDIR /app
 RUN mkdir logs
 
 # Copy the project files into the container
-COPY . .
+COPY src .
 
 # Install project dependencies
 RUN apt-get update && \
