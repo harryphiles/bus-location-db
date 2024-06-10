@@ -1,4 +1,5 @@
 import os
+import time
 
 
 OS_WORKING_DIR = {
@@ -19,6 +20,7 @@ def load_env():
 
 
 class Config:
+    SYSTEM_TIMEZONE = time.tzname[0]
     load_env()
     WORKING_DIRECTORY = (
         "/app/"

@@ -1,6 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Iterable
 from db_controller import DatabaseHandler
+from config import Config
 
 
 type IdentifyDiffResult = tuple[
@@ -8,14 +9,19 @@ type IdentifyDiffResult = tuple[
 ]
 
 
+def convert_dt_as_utc(dt: str, tz: str):
+    """Convert date&time str to dt object, as UTC, according to system timezone"""
+    as_dt = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S.%f").astimezone(tz=timezone.utc)
+    if tz == "UTC":
+        return as_dt - timedelta(hours=9)
+    return as_dt
+
+
 def convert_api_raw(bus_data: dict[str, Any], query_time: str) -> dict[str, Any]:
     """From API raw data, extract onlyl necessary data and match to database keys
     :param query_time: is added for handling this single bus data
     """
-    dt_astimezone = lambda dt: datetime.strptime(
-        dt, "%Y-%m-%d %H:%M:%S.%f"
-    ).astimezone(tz=timezone.utc)
-    query_time_astimezone = dt_astimezone(query_time)
+    query_time_astimezone = convert_dt_as_utc(query_time, Config.SYSTEM_TIMEZONE)
     return {
         "plate_number": bus_data.get("plateNo"),
         "query_time": query_time_astimezone,
