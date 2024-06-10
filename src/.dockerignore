@@ -1,0 +1,4 @@
+# .dockerignore
+.env
+/logs
+/db_schema
