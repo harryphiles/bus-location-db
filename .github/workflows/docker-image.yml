@@ -28,7 +28,7 @@ jobs:
         echo "Extracted version: $version"
         echo "::set-output name=version::$version"
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag "${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.version }}"
+      run: docker build . --file Dockerfile --tag "${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.version }}" --tag "${{ env.IMAGE_NAME }}:latest"
     - name: Log in to Docker Hub
       run: echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
     - name: Push to Docker Hub
