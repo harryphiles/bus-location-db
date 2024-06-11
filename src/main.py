@@ -65,6 +65,8 @@ def run_get_and_record(
     ### Extracts plates with indices from either API and DB
     active_plates_api = get_target_with_index(api_bus_locations, "plateNo")
     active_plates_db = get_target_with_index(db_query_filtered, "plate_number")
+    logger.info(f"{active_plates_api = }")
+    logger.info(f"{active_plates_db = }")
 
     ### Categorize plates
     logger.info(f"{"Categorize plates":-<30}")
