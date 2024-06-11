@@ -98,7 +98,7 @@ def run_get_and_record(
         intersection_push_api_db_combined = [
             {
                 **convert_api_raw(api_bus_locations[api_idx], api_query_time),
-                **db_query[db_idx],
+                **db_query_filtered[db_idx],
             }
             for api_idx, db_idx in intersection.values()
         ]
@@ -119,7 +119,7 @@ def run_get_and_record(
 
     if inactive:
         logger.info(f"{"Push inactive":-^25}{len(inactive):-^5}")
-        inactive_push_data = [db_query[i] for i in inactive.values()]
+        inactive_push_data = [db_query_filtered[i] for i in inactive.values()]
         for d in inactive_push_data:
             logger.info(f"inactive {d = }")
             push_inactive(
