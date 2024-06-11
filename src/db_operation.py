@@ -7,6 +7,7 @@ from config import Config
 type IdentifyDiffResult = tuple[
     dict[str, int], dict[str, tuple[int, int]], dict[str, int]
 ]
+type QueryReturn = list[dict[str, str | datetime]]
 
 
 def convert_dt_as_utc(date_time: str, timez_zone: str) -> datetime:
@@ -99,11 +100,17 @@ def push_intersections(
 
 
 def push_inactive(
-    db: DatabaseHandler, primary_key: dict[str, Any], bus_initial_entry_table: str
+    db: DatabaseHandler, target_data: dict[str, Any], bus_initial_entry_table: str
 ) -> None:
     """For INACTIVE / primary key needs key value pair for initiation_time and plate_number"""
+    filter_keys = {"initiation_time", "plate_number"}
+    def _filter_necessary_keys_values(data: dict[str, str | datetime]) -> dict[str, str | datetime]:
+        return {k: v for k, v in data.items() if k in filter_keys}
+    filtered_data = _filter_necessary_keys_values(target_data)
+    if len(filtered_data) < 2:
+        raise KeyError("Necessary keys not found in target_data while pushing inactive to DB.")
     db.update_column(
-        bus_initial_entry_table, primary_key, update_data={"active": False}
+        bus_initial_entry_table, filtered_data, update_data={"active": False}
     )
 
 
@@ -123,3 +130,18 @@ def identify_differences(left: dict, right: dict) -> IdentifyDiffResult:
             right_temp.pop(i)
 
     return left_temp, intersection, right_temp
+
+
+def filter_inactive_db(
+    db_query: QueryReturn, now_utc: datetime, filter_timedelta: timedelta
+) -> tuple[QueryReturn, QueryReturn]:
+    """If init_time is passed more than filter_timedelta, set as inactive"""
+    db, filtered, inactive = db_query[:], [], []
+    while db:
+        popped = db.pop()
+        init_time = popped.get("initiation_time")
+        if (now_utc - init_time) > filter_timedelta:
+            inactive.append(popped)
+            continue
+        filtered.append(popped)
+    return filtered, inactive

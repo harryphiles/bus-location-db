@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from datetime import datetime, timezone, timedelta
 from bus_api import DataFetcher, DataParser
 from db_controller import DatabaseHandler
 from db_operation import (
@@ -9,6 +10,7 @@ from db_operation import (
     push_intersections,
     push_inactive,
     identify_differences,
+    filter_inactive_db,
 )
 from logger import Logger, LOGGING_CONFIG
 from config import Config
@@ -47,11 +49,18 @@ def run_get_and_record(
         conditions=[("active", "=", True)],
         # conditions=[("active", "=", True), ("initiation_time", ">=", "NOW() - INTERVAL '3 HOURS'")],
     )
-    logger.info(f"--{len(db_query) = }")
+    # Filter active which is supposed to be inactive 
+    # especially when script is starting after long pause
+    db_query_filtered, inactive_filtered = filter_inactive_db(
+        db_query=db_query,
+        now_utc=datetime.now(tz=timezone.utc),
+        filter_timedelta=timedelta(hours=3)
+    )
+    logger.info(f"--{len(db_query) = } {len(db_query_filtered) = } {len(inactive_filtered) = }")
 
     ### Extracts plates with indices from either API and DB
     active_plates_api = get_target_with_index(api_bus_locations, "plateNo")
-    active_plates_db = get_target_with_index(db_query, "plate_number")
+    active_plates_db = get_target_with_index(db_query_filtered, "plate_number")
 
     ### Categorize plates
     logger.info(f"{"Categorize plates":-<30}")
@@ -109,9 +118,20 @@ def run_get_and_record(
             logger.info(f"inactive {d = }")
             push_inactive(
                 db=db,
-                primary_key=d,
+                target_data=d,
                 bus_initial_entry_table=parent_table,
             )
+
+    if inactive_filtered:
+        logger.info(f"{"Push inactive_filtered":-^25}{len(inactive_filtered):-^5}")
+        for d in inactive_filtered:
+            logger.info(f"inactive {d = }")
+            push_inactive(
+                db=db,
+                target_data=d,
+                bus_initial_entry_table=parent_table,
+            )
+        
 
 
 def main() -> None:
