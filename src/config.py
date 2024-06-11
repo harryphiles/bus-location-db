@@ -28,8 +28,6 @@ class Config:
     APP_NAME = ["bus", "location", "db"]
     SYSTEM_TIMEZONE = time.tzname[0]
     WORKING_DIRECTORY = OS_WORKING_DIR.get(os.name)
-    if parent_folder_name == "app":
-        WORKING_DIRECTORY = os.path.join("app", WORKING_DIRECTORY)
     load_env()
     SERVICE_KEY_BUS_API = os.getenv("SERVICE_KEY_BUS_API")
     BUS_ROUTE_ID = os.getenv("BUS_ROUTE_ID")
