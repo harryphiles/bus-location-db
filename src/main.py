@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from bus_api import DataFetcher, DataParser
 from db_controller import DatabaseHandler
@@ -49,12 +48,12 @@ def run_get_and_record(
         conditions=[("active", "=", True)],
         # conditions=[("active", "=", True), ("initiation_time", ">=", "NOW() - INTERVAL '3 HOURS'")],
     )
-    # Filter active which is supposed to be inactive 
+    # Filter active which is supposed to be inactive
     # especially when script is starting after long pause
     db_query_filtered, inactive_filtered = filter_inactive_db(
         db_query=db_query,
         now_utc=datetime.now(tz=timezone.utc),
-        filter_timedelta=timedelta(hours=3)
+        filter_timedelta=timedelta(hours=3),
     )
     logger.info(f"--{len(db_query) = } {len(db_query_filtered) = } {len(inactive_filtered) = }")
 
@@ -131,18 +130,14 @@ def run_get_and_record(
                 target_data=d,
                 bus_initial_entry_table=parent_table,
             )
-        
 
 
 def main() -> None:
-    parent_folder = Path(__file__).resolve().parent
     log_file_name = os.path.join(
         Config.WORKING_DIRECTORY,
-        parent_folder,
         "logs",
-        f"{parent_folder.parent.name}.log",
+        f"{"_".join(Config.APP_NAME)}.log",
     )
-    # log_file_name = "./logs/bus_loc_db.log"
     logger = Logger(__name__, LOGGING_CONFIG, log_file_name).logger
     logger.info("")
     try:
