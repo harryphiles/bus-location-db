@@ -12,6 +12,7 @@ from db_operation import (
 )
 from logger import Logger, LOGGING_CONFIG
 from config import Config
+from exceptions import NoDataError
 
 
 def run_get_and_record(
@@ -34,6 +35,8 @@ def run_get_and_record(
     api_bus_locations: list[dict[str, str]] = api_bus.get("msgBody").get(
         "busLocationList"
     )
+    if not (api_query_time and api_bus_locations):
+        raise NoDataError("No bus is operating in the route.")
     logger.info(f"--{len(api_bus_locations) = }")
 
     ### Get DB
