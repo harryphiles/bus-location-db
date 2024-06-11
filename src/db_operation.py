@@ -9,10 +9,10 @@ type IdentifyDiffResult = tuple[
 ]
 
 
-def convert_dt_as_utc(dt: str, tz: str):
+def convert_dt_as_utc(date_time: str, timez_zone: str) -> datetime:
     """Convert date&time str to dt object, as UTC, according to system timezone"""
-    as_dt = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S.%f").astimezone(tz=timezone.utc)
-    if tz == "UTC":
+    as_dt = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S.%f").astimezone(tz=timezone.utc)
+    if timez_zone == "UTC":
         return as_dt - timedelta(hours=9)
     return as_dt
 
