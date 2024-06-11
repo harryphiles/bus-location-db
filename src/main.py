@@ -39,6 +39,9 @@ def run_get_and_record(
     if not (api_query_time and api_bus_locations):
         raise NoDataError("No bus is operating in the route.")
     logger.info(f"--{len(api_bus_locations) = }")
+    for bus in api_bus_locations:
+        converted = convert_api_raw(bus, api_query_time)
+        logger.info(f"api bus {converted.get("plate_number")} / {converted.get("query_time")}")
 
     ### Get DB
     logger.info(f"{"Get DB":-<30}")
@@ -48,6 +51,8 @@ def run_get_and_record(
         conditions=[("active", "=", True)],
         # conditions=[("active", "=", True), ("initiation_time", ">=", "NOW() - INTERVAL '3 HOURS'")],
     )
+    for bus in db_query:
+        logger.info(f"db  bus {bus.get("plate_number")} / {bus.get("initiation_time")}")
     # Filter active which is supposed to be inactive
     # especially when script is starting after long pause
     db_query_filtered, inactive_filtered = filter_inactive_db(
