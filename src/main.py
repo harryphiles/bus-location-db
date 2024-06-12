@@ -16,6 +16,10 @@ from config import Config
 from exceptions import NoDataError
 
 
+def format_logs(data: dict[str, str | datetime]) -> list[str]:
+    return [v if not isinstance(v, datetime) else v.strftime("%y%m%d-%H%M%S") for v in data.values()] 
+
+
 def run_get_and_record(
     db: DatabaseHandler, logger: Logger, table_names: tuple[str, str]
 ) -> None:
@@ -38,10 +42,10 @@ def run_get_and_record(
     )
     if not (api_query_time and api_bus_locations):
         raise NoDataError("No bus is operating in the route.")
-    logger.info(f"--{len(api_bus_locations) = }")
+    logger.info(f"-- {len(api_bus_locations) = }")
     for bus in api_bus_locations:
         converted = convert_api_raw(bus, api_query_time)
-        logger.info(f"api bus {converted.get("plate_number")} / {converted.get("query_time")}")
+        logger.info(f"-- {format_logs(converted)}")
 
     ### Get DB
     logger.info(f"{"Get DB":-<30}")
@@ -51,8 +55,9 @@ def run_get_and_record(
         conditions=[("active", "=", True)],
         # conditions=[("active", "=", True), ("initiation_time", ">=", "NOW() - INTERVAL '3 HOURS'")],
     )
+    logger.info(f"-- {len(db_query) = }")
     for bus in db_query:
-        logger.info(f"db  bus {bus.get("plate_number")} / {bus.get("initiation_time")}")
+        logger.info(f"-- {format_logs(bus)}")
     # Filter active which is supposed to be inactive
     # especially when script is starting after long pause
     db_query_filtered, inactive_filtered = filter_inactive_db(
@@ -60,7 +65,7 @@ def run_get_and_record(
         now_utc=datetime.now(tz=timezone.utc),
         filter_timedelta=timedelta(hours=3),
     )
-    logger.info(f"--{len(db_query) = } {len(db_query_filtered) = } {len(inactive_filtered) = }")
+    logger.info(f"-- {len(db_query_filtered) = } {len(inactive_filtered) = }")
 
     ### Extracts plates with indices from either API and DB
     active_plates_api = get_target_with_index(api_bus_locations, "plateNo")
@@ -85,7 +90,7 @@ def run_get_and_record(
             for i in new_plates.values()
         ]
         for d in new_push_data:
-            logger.info(f"new push {d = }")
+            logger.info(f"-- {format_logs(d) = }")
             push_new(
                 db=db,
                 bus_data=d,
@@ -102,8 +107,9 @@ def run_get_and_record(
             }
             for api_idx, db_idx in intersection.values()
         ]
+        logger.info("-- plate / query_t / station_seq / station_id / route_id / init_t")
         for d in intersection_push_api_db_combined:
-            logger.info(f"intersections d => {d}")
+            logger.info(f"-- {format_logs(d) = }")
         intersection_result = [
             push_intersections(
                 db=db,
@@ -121,7 +127,7 @@ def run_get_and_record(
         logger.info(f"{"Push inactive":-^25}{len(inactive):-^5}")
         inactive_push_data = [db_query_filtered[i] for i in inactive.values()]
         for d in inactive_push_data:
-            logger.info(f"inactive {d = }")
+            logger.info(f"-- {format_logs(d) = }")
             push_inactive(
                 db=db,
                 target_data=d,
@@ -131,7 +137,7 @@ def run_get_and_record(
     if inactive_filtered:
         logger.info(f"{"Push inactive_filtered":-^25}{len(inactive_filtered):-^5}")
         for d in inactive_filtered:
-            logger.info(f"inactive {d = }")
+            logger.info(f"-- {format_logs(d) = }")
             push_inactive(
                 db=db,
                 target_data=d,
