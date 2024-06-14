@@ -4,6 +4,7 @@ import requests
 
 
 class DataFetcher:
+    """Fetches Bus Data from API"""
     services = {
         "buslocationservice",
         "busrouteservice",
@@ -46,6 +47,7 @@ class DataFetcher:
 
 
 class DataParser:
+    """Parse XML data"""
     def __init__(self, xml_element: ET.Element) -> None:
         self.xml_element = xml_element
 
@@ -103,24 +105,3 @@ class DataParser:
 
     def explore_new_xml(self) -> dict[str, Any]:
         return self._explore_xml_to_dict(self.xml_element)
-
-
-# def main():
-#     fetched, url = DataFetcher(
-#         service_name="buslocationservice",
-#         service_operation="getBusLocationList",
-#         # service_name="busrouteservice",
-#         # service_operation="getBusRouteInfoItem",
-#         service_key=SERVICE_KEY_BUS_TRACKER,
-#         route_id=204000073,
-#     ).request_get_data()
-#     print(f"{url = }")
-
-#     # parsed = DataParser(fetched).explore_new_xml()
-#     # write_file("./downloads/315_route.json", parsed)
-#     parsed = DataParser(fetched).get_bus_location()
-#     write_file("./downloads/parsed_7.json", parsed)
-
-
-# if __name__ == "__main__":
-#     main()
