@@ -104,6 +104,6 @@ BEGIN
         dest.arrival_time IS NOT NULL
         AND origin.arrival_time IS NOT NULL
         AND bi.initiation_time BETWEEN from_date AND to_date
-    ORDER BY Init ASC;
+    ORDER BY Depart ASC;
 END;
 $$ LANGUAGE plpgsql;
